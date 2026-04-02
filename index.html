@@ -88,9 +88,9 @@ section,#gate,#loading{position:relative;z-index:1;}
 .atag{font-size:.45rem;letter-spacing:.2em;text-transform:uppercase;padding:3px 10px;border:1px solid var(--border);display:inline-block;}
 .atag.B{color:var(--orchid);border-color:rgba(168,85,247,.25);}
 .atag.H{color:var(--rose);border-color:rgba(232,121,249,.25);}
-.fbox{margin-top:28px;background:rgba(8,0,15,.4);border:1px solid var(--border);padding:28px;backdrop-filter:blur(20px);}
-.author-row{display:flex;gap:10px;margin-bottom:22px;}
-.asel{flex:1;padding:10px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .3s;}
+.fbox{margin-top:28px;background:rgba(8,0,15,.4);border:1px solid var(--border);padding:28px;backdrop-filter:blur(20px);width:100%;overflow:hidden;}
+.author-row{display:flex;gap:10px;margin-bottom:22px;width:100%;}
+.asel{flex:1;min-width:0;padding:10px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .3s;}
 .asel.on{background:rgba(124,58,237,.15);border-color:var(--accent);color:var(--accent);}
 .inp{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(168,85,247,.15);color:var(--white);font-family:'DM Sans',sans-serif;font-size:.9rem;padding:10px 0;outline:none;transition:border-color .3s;display:block;margin-bottom:18px;}
 .inp::placeholder{color:rgba(168,85,247,.2);}
@@ -572,7 +572,10 @@ window.delJournal=function(key){remove(ref(db,`journal/${key}`));toast('Removed'
 function listenJournal(){
   onValue(ref(db,'journal'),snap=>{
     jAllEntries=[];
-    if(snap.exists())snap.forEach(c=>jAllEntries.unshift({key:c.key,...c.val()}));
+    if(snap.exists()){
+      snap.forEach(c=>jAllEntries.push({key:c.key,...c.val()}));
+      jAllEntries.reverse();
+    }
     renderJournal();
   });
 }
@@ -599,7 +602,7 @@ function listenNotes(){
     notesData=[];
     const g=document.getElementById('notes-grid');
     if(!snap.exists()){g.innerHTML='<div class="empty" style="grid-column:1/-1">No notes yet. Leave one.</div>';return;}
-    snap.forEach(c=>notesData.unshift({key:c.key,...c.val()}));
+    snap.forEach(c=>notesData.push({key:c.key,...c.val()}));notesData.reverse();
     g.innerHTML=notesData.map(n=>`<div class="card note-card" id="nc-${n.key}" onclick="openNote('${n.key}')">${sealedHTML(n)}</div>`).join('');
   });
 }
@@ -625,7 +628,7 @@ function listenMemories(){
   onValue(ref(db,'memories'),snap=>{
     const g=document.getElementById('mem-grid');
     if(!snap.exists()){g.innerHTML='<div class="empty" style="grid-column:1/-1">No memories yet.</div>';return;}
-    const mems=[];snap.forEach(c=>mems.unshift({key:c.key,...c.val()}));
+    const mems=[];snap.forEach(c=>mems.push({key:c.key,...c.val()}));mems.reverse();
     g.innerHTML=mems.map(m=>`<div class="card mc">${m.photo?`<img class="mc-img" src="${m.photo}" alt="${m.title}"/>`:'<div class="mc-img-placeholder">📷</div>'}<div class="mc-body">${m.date?`<span class="mc-date">${m.date}</span>`:''}<div class="mc-title">${m.title}</div>${m.desc?`<p class="mc-desc">${m.desc}</p>`:''}<div class="mc-foot"><span class="mc-who">by ${m.author}</span><button class="xbtn" onclick="delMemory('${m.key}')">✕ remove</button></div></div></div>`).join('');
   });
 }
