@@ -327,8 +327,8 @@ textarea.inp{resize:none;min-height:72px;font-family:'Cormorant Garamond',serif;
         <button class="fbtn" onclick="filterJournal('B',this)">B only</button>
         <button class="fbtn" onclick="filterJournal('H',this)">H only</button>
       </div>
-      <div class="journal-cols rv d3" id="journal-entries"><div class="empty">No entries yet. Write something honest.</div></div>
-      <div class="fbox rv d4">
+      <div class="journal-cols" id="journal-entries"><div class="empty">No entries yet. Write something honest.</div></div>
+      <div class="fbox">
         <div class="author-row">
           <button class="asel on" id="jbtn-B" onclick="setJA('B')">B</button>
           <button class="asel" id="jbtn-H" onclick="setJA('H')">H</button>
@@ -344,8 +344,8 @@ textarea.inp{resize:none;min-height:72px;font-family:'Cormorant Garamond',serif;
       <div class="divider rv"><span class="divider-label">love notes</span></div>
       <span class="sec-eyebrow rv d1">left for each other</span>
       <h2 class="sec-title rv d2">Something I<br><em>wanted you to know.</em></h2>
-      <div class="notes-grid rv d3" id="notes-grid"><div class="empty" style="grid-column:1/-1">No notes yet. Leave one.</div></div>
-      <div class="fbox rv d4">
+      <div class="notes-grid" id="notes-grid"><div class="empty" style="grid-column:1/-1">No notes yet. Leave one.</div></div>
+      <div class="fbox">
         <div class="author-row">
           <button class="asel on" id="nbtn-B" onclick="setNA('B')">From B</button>
           <button class="asel" id="nbtn-H" onclick="setNA('H')">From H</button>
@@ -362,8 +362,8 @@ textarea.inp{resize:none;min-height:72px;font-family:'Cormorant Garamond',serif;
       <div class="divider rv"><span class="divider-label">memory wall</span></div>
       <span class="sec-eyebrow rv d1">the moments worth keeping forever</span>
       <h2 class="sec-title rv d2">Things we<br><em>never want to forget.</em></h2>
-      <div class="mem-grid rv d3" id="mem-grid"><div class="empty" style="grid-column:1/-1">No memories yet. Add your first one.</div></div>
-      <div class="fbox rv d4">
+      <div class="mem-grid" id="mem-grid"><div class="empty" style="grid-column:1/-1">No memories yet. Add your first one.</div></div>
+      <div class="fbox">
         <label class="photo-label" for="mem-photo-input">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           add a photo (optional)
@@ -391,8 +391,8 @@ textarea.inp{resize:none;min-height:72px;font-family:'Cormorant Garamond',serif;
       <div class="divider rv"><span class="divider-label">bucket list</span></div>
       <span class="sec-eyebrow rv d1">things we are going to do; together.</span>
       <h2 class="sec-title rv d2">Everything<br><em>ahead of us.</em></h2>
-      <div class="blist rv d3" id="blist"></div>
-      <div class="fbox rv d4">
+      <div class="blist" id="blist"></div>
+      <div class="fbox">
         <div class="badd">
           <input type="text" class="inp" id="b-inp" placeholder="Something to do together…" style="margin:0;flex:1;"/>
           <button class="sbtn" onclick="addBucket()" style="white-space:nowrap;">Add ◆</button>
@@ -406,7 +406,7 @@ textarea.inp{resize:none;min-height:72px;font-family:'Cormorant Garamond',serif;
       <div class="divider rv"><span class="divider-label">dates that matter</span></div>
       <span class="sec-eyebrow rv d1">marked in time, always.</span>
       <h2 class="sec-title rv d2">The days<br><em>we circle.</em></h2>
-      <div class="dgrid rv d3" id="dates-grid"></div>
+      <div class="dgrid" id="dates-grid"></div>
     </div>
   </section>
 
