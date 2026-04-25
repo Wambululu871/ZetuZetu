@@ -157,34 +157,6 @@ textarea.inp{resize:none;min-height:68px;font-family:'Cormorant Garamond',serif;
 .sh-l{width:1px;height:38px;background:linear-gradient(to bottom,var(--orchid),transparent);animation:sl 2s ease-in-out infinite;}
 @keyframes sl{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
 
-/* ── THIS MONTH ── */
-.month-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-@media(max-width:700px){.month-grid{grid-template-columns:1fr;}}
-.month-card{border:1px solid var(--border);background:var(--glass);backdrop-filter:blur(22px);padding:26px;position:relative;overflow:hidden;transition:border-color .3s;}
-.month-card:hover{border-color:var(--border-h);}
-.month-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,var(--gold-dim),transparent);}
-.month-label{font-size:.42rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;display:block;}
-.month-text{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-style:italic;line-height:1.7;color:var(--pearl);min-height:48px;}
-.month-text.empty{color:rgba(168,85,247,.25);font-size:.88rem;}
-.month-edit-btn{margin-top:14px;background:transparent;border:none;color:rgba(168,85,247,.3);font-size:.44rem;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:color .3s;padding:0;}
-.month-edit-btn:hover{color:var(--orchid);}
-.month-stamp{font-size:.42rem;color:rgba(168,85,247,.22);margin-top:8px;display:block;}
-
-/* ── MOOD BOARD ── */
-.mood-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-@media(max-width:500px){.mood-wrap{grid-template-columns:1fr;}}
-.mood-side{border:1px solid var(--border);background:var(--glass);backdrop-filter:blur(22px);padding:26px;position:relative;overflow:hidden;}
-.mood-side::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,var(--gold-dim),transparent);}
-.mood-who{font-size:.44rem;letter-spacing:.25em;text-transform:uppercase;margin-bottom:16px;display:block;}
-.mood-who.B{color:var(--orchid);}
-.mood-who.H{color:var(--rose);}
-.mood-word{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,5vw,3.2rem);font-weight:300;color:var(--white);line-height:1;min-height:52px;letter-spacing:-.02em;}
-.mood-word.empty{color:rgba(168,85,247,.2);font-size:1.1rem;font-style:italic;font-weight:300;}
-.mood-sub{font-size:.78rem;color:var(--muted);margin-top:8px;font-style:italic;font-family:'Cormorant Garamond',serif;}
-.mood-time{font-size:.42rem;color:rgba(168,85,247,.22);margin-top:10px;display:block;}
-.mood-set-btn{margin-top:14px;background:transparent;border:none;color:rgba(168,85,247,.3);font-size:.44rem;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:color .3s;padding:0;display:block;}
-.mood-set-btn:hover{color:var(--orchid);}
-
 /* ── SONG ── */
 .song-wrap{border:1px solid var(--border);background:var(--glass);backdrop-filter:blur(24px);padding:clamp(22px,4vw,44px);display:flex;align-items:center;gap:26px;position:relative;overflow:hidden;transition:border-color .3s;}
 .song-wrap:hover{border-color:var(--border-h);}
@@ -364,22 +336,6 @@ textarea.inp{resize:none;min-height:68px;font-family:'Cormorant Garamond',serif;
   <button class="sbtn" style="margin-top:14px;" onclick="addMemory()">Save Memory ◆</button>
 </div>
 
-<!-- MOOD SHEET -->
-<div class="sheet" id="sheet-mood">
-  <div class="sheet-handle"></div>
-  <div class="sheet-title" id="mood-sheet-title">How are we feeling?</div>
-  <input type="text" class="inp" id="mood-inp" placeholder="One word…" maxlength="24"/>
-  <input type="text" class="inp" id="mood-sub-inp" placeholder="A little more… (optional)" maxlength="60"/>
-  <button class="sbtn" onclick="saveMood()">Set Mood ◆</button>
-</div>
-
-<!-- THIS MONTH SHEET -->
-<div class="sheet" id="sheet-tm">
-  <div class="sheet-handle"></div>
-  <div class="sheet-title" id="tm-sheet-title">This month.</div>
-  <textarea class="inp" id="tm-inp" placeholder="Write something…" rows="4"></textarea>
-  <button class="sbtn" onclick="saveTM()">Save ◆</button>
-</div>
 
 <!-- BUCKET SHEET -->
 <div class="sheet" id="sheet-b">
@@ -397,8 +353,6 @@ textarea.inp{resize:none;min-height:68px;font-family:'Cormorant Garamond',serif;
   </div>
   <nav id="snav">
     <a href="#hero"     data-l="home"       data-s="hero"></a>
-    <a href="#thismonth" data-l="this month" data-s="thismonth"></a>
-    <a href="#mood"     data-l="mood"       data-s="mood"></a>
     <a href="#song"     data-l="our song"   data-s="song"></a>
     <a href="#journal"  data-l="journal"    data-s="journal"></a>
     <a href="#notes"    data-l="notes"      data-s="notes"></a>
@@ -427,60 +381,6 @@ textarea.inp{resize:none;min-height:68px;font-family:'Cormorant Garamond',serif;
       <div class="ci"><div class="cn" id="cs">00</div><div class="cl">Seconds</div></div>
     </div>
     <div class="sh"><span>explore</span><div class="sh-l"></div></div>
-  </section>
-
-  <!-- THIS MONTH -->
-  <section id="thismonth">
-    <div class="sec">
-      <div class="div rv"><span>this month</span></div>
-      <span class="eyebrow rv d1">updated every month, together</span>
-      <h2 class="sec-title rv d2">What we're<br><em>holding right now.</em></h2>
-      <div class="month-grid rv d3">
-        <div class="month-card">
-          <span class="month-label">◆ our intention</span>
-          <div class="month-text" id="tm-intention-txt"><span class="empty">Not set yet.</span></div>
-          <span class="month-stamp" id="tm-intention-stamp"></span>
-          <button class="month-edit-btn" onclick="openTM('intention')">◆ set intention</button>
-        </div>
-        <div class="month-card">
-          <span class="month-label">◆ a memory</span>
-          <div class="month-text" id="tm-memory-txt"><span class="empty">Not set yet.</span></div>
-          <span class="month-stamp" id="tm-memory-stamp"></span>
-          <button class="month-edit-btn" onclick="openTM('memory')">◆ add memory</button>
-        </div>
-        <div class="month-card">
-          <span class="month-label">◆ grateful for</span>
-          <div class="month-text" id="tm-grateful-txt"><span class="empty">Not set yet.</span></div>
-          <span class="month-stamp" id="tm-grateful-stamp"></span>
-          <button class="month-edit-btn" onclick="openTM('grateful')">◆ add gratitude</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- MOOD BOARD -->
-  <section id="mood">
-    <div class="sec">
-      <div class="div rv"><span>mood board</span></div>
-      <span class="eyebrow rv d1">how we feel about us right now</span>
-      <h2 class="sec-title rv d2">One word.<br><em>Right now.</em></h2>
-      <div class="mood-wrap rv d3">
-        <div class="mood-side">
-          <span class="mood-who B">B</span>
-          <div class="mood-word" id="mood-B-word"><span class="empty">Not set.</span></div>
-          <div class="mood-sub" id="mood-B-sub"></div>
-          <span class="mood-time" id="mood-B-time"></span>
-          <button class="mood-set-btn" onclick="openMood('B')">◆ set mood</button>
-        </div>
-        <div class="mood-side">
-          <span class="mood-who H">H</span>
-          <div class="mood-word" id="mood-H-word"><span class="empty">Not set.</span></div>
-          <div class="mood-sub" id="mood-H-sub"></div>
-          <span class="mood-time" id="mood-H-time"></span>
-          <button class="mood-set-btn" onclick="openMood('H')">◆ set mood</button>
-        </div>
-      </div>
-    </div>
   </section>
 
   <!-- SONG -->
@@ -737,7 +637,6 @@ const DEFAULT_BUCKETS=['Watch the sunrise somewhere new','Cook a full meal toget
 function initSite(){
   startCounter();buildDates();
   listenSong();listenJournal();listenNotes();listenMemories();listenBuckets();
-  listenMood();listenThisMonth();
   initReveal();initNav();
   document.getElementById('cl-since').textContent='Together since '+START_DATE.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
 }
@@ -795,75 +694,6 @@ window.saveSong=function(){
   set(ref(db,'song'),{name,artist:document.getElementById('si-artist').value.trim(),link:document.getElementById('si-link').value.trim(),note:document.getElementById('si-note').value.trim()});
   document.getElementById('s-edit').classList.remove('open');toast('Song saved ◆');
 };
-
-// ── THIS MONTH ──
-let tmField='intention';
-window.openTM=function(field){
-  tmField=field;
-  const labels={intention:'Our intention this month.',memory:'A memory from this month.',grateful:'What we\'re grateful for.'};
-  document.getElementById('tm-sheet-title').textContent=labels[field]||'This month.';
-  onValue(ref(db,`thismonth/${field}`),snap=>{
-    document.getElementById('tm-inp').value=snap.exists()?snap.val().text:'';
-  },{onlyOnce:true});
-  if(isMobile())openSheet('sheet-tm');
-  else{const t=prompt(labels[field]);if(t)saveTMDirect(field,t);}
-};
-window.saveTM=function(){
-  const text=document.getElementById('tm-inp').value.trim();if(!text)return;
-  saveTMDirect(tmField,text);closeSheet();
-};
-function saveTMDirect(field,text){
-  set(ref(db,`thismonth/${field}`),{text,ts:Date.now()});toast('Saved ◆');
-}
-function listenThisMonth(){
-  ['intention','memory','grateful'].forEach(field=>{
-    onValue(ref(db,`thismonth/${field}`),snap=>{
-      const txt=document.getElementById(`tm-${field}-txt`);
-      const stamp=document.getElementById(`tm-${field}-stamp`);
-      if(snap.exists()&&snap.val().text){
-        txt.innerHTML=snap.val().text;
-        stamp.textContent=relTime(snap.val().ts);
-      } else {
-        txt.innerHTML='<span class="empty">Not set yet.</span>';
-        stamp.textContent='';
-      }
-    });
-  });
-}
-
-// ── MOOD ──
-let moodTarget='B';
-window.openMood=function(who){
-  moodTarget=who;
-  document.getElementById('mood-sheet-title').textContent=`How is ${who} feeling about us?`;
-  onValue(ref(db,`mood/${who}`),snap=>{
-    if(snap.exists()){document.getElementById('mood-inp').value=snap.val().word||'';document.getElementById('mood-sub-inp').value=snap.val().sub||'';}
-    else{document.getElementById('mood-inp').value='';document.getElementById('mood-sub-inp').value='';}
-  },{onlyOnce:true});
-  openSheet('sheet-mood');
-};
-window.saveMood=function(){
-  const word=document.getElementById('mood-inp').value.trim();if(!word)return;
-  set(ref(db,`mood/${moodTarget}`),{word,sub:document.getElementById('mood-sub-inp').value.trim(),ts:Date.now()});
-  closeSheet();toast('Mood set ◆');
-};
-function listenMood(){
-  ['B','H'].forEach(who=>{
-    onValue(ref(db,`mood/${who}`),snap=>{
-      const wEl=document.getElementById(`mood-${who}-word`);
-      const sEl=document.getElementById(`mood-${who}-sub`);
-      const tEl=document.getElementById(`mood-${who}-time`);
-      if(snap.exists()&&snap.val().word){
-        wEl.textContent=snap.val().word;
-        sEl.textContent=snap.val().sub||'';
-        tEl.textContent=relTime(snap.val().ts);
-      } else {
-        wEl.innerHTML='<span class="empty">Not set.</span>';
-        sEl.textContent='';tEl.textContent='';
-      }
-    });
-  });
-}
 
 // ── JOURNAL ──
 window.setJA=function(a){
