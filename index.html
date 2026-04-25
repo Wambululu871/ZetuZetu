@@ -1699,7 +1699,7 @@
       border-color: var(--accent);
       color: var(--accent);
     }
-    
+
     /* Mobile Bottom Sheet */
     .sheet-overlay {
       position: fixed;
@@ -2317,7 +2317,6 @@
     }
   </style>
 </head>
-
 <body>
   <div id="cur"></div>
   <div id="cur-trail"></div>
@@ -2773,8 +2772,21 @@
     setTimeout(() => document.getElementById('loading').classList.add('out'), 900);
 
     // Mobile sheets
-    window.openSheet = function (id) { document.getElementById(id).classList.add('open'); };
-    window.closeSheet = function (id) { document.getElementById(id).classList.remove('open'); };
+    window.openSheet = function (id) {
+      const el = typeof id === 'string' ? document.getElementById(id) : id;
+      if (!el) return;
+      el.classList.add('open');
+      document.documentElement.style.overflow = 'hidden';
+      // focus first input for accessibility
+      const focusEl = el.querySelector('.sheet input.inp, .sheet textarea.inp, .sheet .sbtn, .sheet input, .sheet textarea');
+      if (focusEl) focusEl.focus();
+    };
+    window.closeSheet = function (id) {
+      const el = typeof id === 'string' ? document.getElementById(id) : id;
+      if (!el) return;
+      el.classList.remove('open');
+      document.documentElement.style.overflow = '';
+    };
 
     // Gate
     let chosenAuthor = 'B';
@@ -3115,6 +3127,27 @@
       if (bAm && bHm) { bAm.classList.toggle('on', a === 'B'); bHm.classList.toggle('on', a === 'H'); }
     };
 
+    // Generic attachment for small author selector buttons (.asel)
+    function attachAuthorToggles() {
+      document.querySelectorAll('.author-row').forEach(row => {
+        row.querySelectorAll('.asel').forEach(btn => {
+          if (btn.__aselAttached) return;
+          btn.__aselAttached = true;
+          btn.addEventListener('click', e => {
+            e.preventDefault();
+            const id = btn.id || '';
+            const parts = id.split('-'); // e.g. dpbtn-B-m or jbtn-H
+            const prefix = (parts[0] || '').toLowerCase();
+            const who = (parts[1] || (btn.textContent || '').trim().slice(0, 1)).toUpperCase();
+            if (prefix.startsWith('jbtn')) { window.setJA && window.setJA(who); }
+            else if (prefix.startsWith('nbtn')) { window.setNA && window.setNA(who); }
+            else if (prefix.startsWith('mbtn')) { window.setMA && window.setMA(who); }
+            else if (prefix.startsWith('dpbtn')) { window.setDPA && window.setDPA(who); }
+          });
+        });
+      });
+    }
+
     window.addPlannedDate = function (mobile = false) {
       const nameEl = mobile ? document.getElementById('dp-name-m') : document.getElementById('dp-name');
       const vibeEl = mobile ? document.getElementById('dp-vibe-m') : document.getElementById('dp-vibe');
@@ -3123,11 +3156,12 @@
       const name = nameEl.value.trim();
       if (!name) { toast('Give this date a name'); return; }
 
-      push(ref(db, 'plannedDates'), {
+      // Use a dedicated child path so other top-level nodes are untouched
+      push(ref(db, 'planned_dates'), {
         name,
         vibe: vibeEl.value.trim(),
         when: whenEl.value.trim(),
-        planner: dpAuthor,
+        planner: String(dpAuthor || 'B').trim().toUpperCase(),
         status: 'dreaming',
         ts: Date.now()
       });
@@ -3141,7 +3175,8 @@
       const order = ['dreaming', 'planned', 'done'];
       const idx = order.indexOf(currentStatus);
       const next = order[(idx + 1) % 3];
-      set(ref(db, `plannedDates/${key}/status`), next);
+      // Update only the status field for this planned date
+      set(ref(db, `planned_dates/${key}/status`), next);
 
       if (next === 'done') {
         // Particle burst
@@ -3167,7 +3202,7 @@
     };
 
     window.delPlannedDate = function (key) {
-      remove(ref(db, `plannedDates/${key}`));
+      remove(ref(db, `planned_dates/${key}`));
       toast('Date removed');
     };
 
@@ -3209,7 +3244,8 @@
     }
 
     function listenPlannedDates() {
-      onValue(ref(db, 'plannedDates'), snap => {
+      // Listen on `planned_dates` (snake_case) to match DB key
+      onValue(ref(db, 'planned_dates'), snap => {
         plannedDates = [];
         if (snap.exists()) {
           const raw = snap.val();
@@ -3347,8 +3383,11 @@
     const origInitSite = initSite;
     initSite = function () {
       origInitSite();
+      // Ensure data listeners are active
       listenPlannedDates();
-      // Set initial author for date planner based on chosen author
+      // Attach author toggles for all .asel buttons (desktop + mobile)
+      attachAuthorToggles();
+      // Set initial author state for date planner and other selectors
       setDPA(chosenAuthor);
     };
   </script>
