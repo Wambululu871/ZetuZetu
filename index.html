@@ -251,6 +251,42 @@ textarea.inp{resize:none;min-height:68px;font-family:'Cormorant Garamond',serif;
 .dunit{font-size:.42rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:5px;}
 .dact{margin-top:8px;font-size:.62rem;color:rgba(168,85,247,.28);}
 
+/* ── CALENDAR ── */
+.cal-wrap{background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(22px);padding:22px;margin-bottom:32px;position:relative;}
+.cal-wrap::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,var(--gold-dim),transparent);}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.cal-month{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:300;color:var(--white);letter-spacing:-.01em;}
+.cal-nav{background:transparent;border:1px solid var(--border);color:var(--muted);width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s;font-size:.9rem;flex-shrink:0;}
+.cal-nav:hover{border-color:var(--orchid);color:var(--orchid);}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;}
+.cal-dow span{text-align:center;font-size:.38rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(168,85,247,.3);padding:4px 0;}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--muted);position:relative;border-radius:2px;transition:all .2s;cursor:default;}
+.cal-day.other{color:rgba(168,85,247,.1);}
+.cal-day.today{color:var(--orchid);font-weight:500;}
+.cal-day.today::before{content:'';position:absolute;inset:3px;border:1px solid rgba(168,85,247,.25);border-radius:2px;}
+.cal-day.has-event{color:var(--white);cursor:pointer;}
+.cal-day.has-event::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--orchid);box-shadow:0 0 6px var(--orchid);}
+.cal-day.has-event:hover{background:rgba(168,85,247,.1);}
+.cal-day.has-event.past-event::after{background:var(--gold);box-shadow:0 0 6px var(--gold);}
+.cal-tooltip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:rgba(14,0,28,.98);border:1px solid var(--border);padding:8px 12px;font-size:.42rem;letter-spacing:.12em;text-transform:uppercase;color:var(--pearl);white-space:nowrap;z-index:20;pointer-events:none;opacity:0;transition:opacity .2s;}
+.cal-day.has-event:hover .cal-tooltip{opacity:1;}
+.cal-legend{display:flex;gap:18px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(168,85,247,.07);}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:.4rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+.leg-dot{width:5px;height:5px;border-radius:50%;}
+.leg-dot.future{background:var(--orchid);box-shadow:0 0 5px var(--orchid);}
+.leg-dot.past{background:var(--gold);box-shadow:0 0 5px var(--gold);}
+
+/* ── DATE FORM ── */
+.date-form{background:rgba(8,0,15,.4);border:1px solid var(--border);padding:22px;backdrop-filter:blur(20px);margin-top:24px;}
+.date-form-title{font-family:'Cormorant Garamond',serif;font-size:1rem;font-style:italic;color:var(--lavender);margin-bottom:18px;}
+.d-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;}
+@media(max-width:600px){.d-form-grid{grid-template-columns:1fr;}}
+.d-fc{grid-column:1/-1;}
+
+/* DATE SHEET (mobile) */
+#sheet-d .inp[type="date"]{color-scheme:dark;}
+
 /* ── CLOSING ── */
 #closing{min-height:78vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 24px;}
 .cl-d{width:50px;height:50px;border:1px solid var(--gold-dim);transform:rotate(45deg);margin:0 auto 40px;display:flex;align-items:center;justify-content:center;animation:ldP 3s ease-in-out infinite;}
@@ -343,6 +379,17 @@ textarea.inp{resize:none;min-height:68px;font-family:'Cormorant Garamond',serif;
   <div class="sheet-title">Add to the list.</div>
   <input type="text" class="inp" id="sb-inp" placeholder="Something to do together…"/>
   <button class="sbtn" onclick="addBucket()">Add ◆</button>
+</div>
+
+<!-- DATE SHEET (mobile) -->
+<div class="sheet" id="sheet-d">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Mark a date.</div>
+  <input type="text"  class="inp" id="sd-name"     placeholder="What are we marking?…"/>
+  <input type="text"  class="inp" id="sd-icon"     placeholder="Icon / emoji…"/>
+  <input type="date"  class="inp" id="sd-date"     style="color-scheme:dark;"/>
+  <input type="text"  class="inp" id="sd-category" placeholder="Category (anniversary, meetup…)"/>
+  <button class="sbtn" onclick="window.addDate(true)">Mark This Date ◆</button>
 </div>
 
 <!-- SITE -->
@@ -507,7 +554,39 @@ textarea.inp{resize:none;min-height:68px;font-family:'Cormorant Garamond',serif;
       <div class="div rv"><span>dates that matter</span></div>
       <span class="eyebrow rv d1">marked in time, always.</span>
       <h2 class="sec-title rv d2">The days<br><em>we circle.</em></h2>
+
+      <!-- Visual Calendar -->
+      <div class="cal-wrap rv">
+        <div class="cal-header">
+          <button class="cal-nav" id="cal-prev">&#8249;</button>
+          <span class="cal-month" id="cal-month-label">— —</span>
+          <button class="cal-nav" id="cal-next">&#8250;</button>
+        </div>
+        <div class="cal-dow">
+          <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+        </div>
+        <div class="cal-days" id="cal-days"></div>
+        <div class="cal-legend">
+          <div class="leg-item"><div class="leg-dot future"></div>upcoming</div>
+          <div class="leg-item"><div class="leg-dot past"></div>days since</div>
+        </div>
+      </div>
+
+      <!-- Dynamic dates list -->
       <div class="d-grid" id="d-grid"></div>
+
+      <!-- Desktop add-date form -->
+      <div class="date-form rv" id="d-fbox">
+        <div class="date-form-title">◆ mark a new date</div>
+        <div class="d-form-grid">
+          <input type="text"  class="inp" id="di-name"     placeholder="What are we marking?…"/>
+          <input type="text"  class="inp" id="di-icon"     placeholder="Icon / emoji…"/>
+          <input type="date"  class="inp" id="di-date"     />
+          <input type="text"  class="inp" id="di-category" placeholder="Category (anniversary, meetup…)"/>
+        </div>
+        <button class="sbtn" onclick="window.addDate()">Mark This Date ◆</button>
+      </div>
+      <button class="sbtn" style="margin-top:18px;display:none;" id="d-mob-btn" onclick="openSheet('sheet-d')">◆ Mark a date</button>
     </div>
   </section>
 
@@ -586,7 +665,7 @@ window.closeSheet=function(){
 // Mobile buttons
 function setupMobile(){
   const mob=isMobile();
-  ['j','n','m','b'].forEach(k=>{
+  ['j','n','m','b','d'].forEach(k=>{
     const fb=document.getElementById(`${k}-fbox`);
     const mb=document.getElementById(`${k}-mob-btn`);
     if(fb)fb.style.display=mob?'none':'block';
@@ -635,7 +714,7 @@ window.switchAuthor=function(){setAuthor(chosenAuthor==='B'?'H':'B');toast(`Swit
 const DEFAULT_BUCKETS=['Watch the sunrise somewhere new','Cook a full meal together','Go somewhere neither of us has been','Have a night in with no phones','Take a photo we both actually love','Go on a road trip, no destination','Get all dressed up just for each other','Build something together'];
 
 function initSite(){
-  startCounter();buildDates();
+  startCounter();listenDates();
   listenSong();listenJournal();listenNotes();listenMemories();listenBuckets();
   initReveal();initNav();
   document.getElementById('cl-since').textContent='Together since '+START_DATE.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
@@ -654,14 +733,139 @@ function startCounter(){
   tick();setInterval(tick,1000);
 }
 
-function buildDates(){
-  function until(m,d){const now=new Date();let t=new Date(now.getFullYear(),m-1,d);if(t<=now)t=new Date(now.getFullYear()+1,m-1,d);return Math.ceil((t-now)/86400000);}
-  function fmt(m,d){return new Date(2000,m-1,d).toLocaleDateString('en-US',{month:'long',day:'numeric'});}
-  const ann={month:START_DATE.getMonth()+1,day:START_DATE.getDate(),name:'Our Anniversary',icon:'✨'};
-  [HER_BDAY,HIS_BDAY,ann].forEach(d=>{
-    document.getElementById('d-grid').innerHTML+=`<div class="dc rv"><div class="dicon">${d.icon}</div><div class="dname">${d.name}</div><div class="dnum">${until(d.month,d.day)}</div><div class="dunit">days away</div><div class="dact">${fmt(d.month,d.day)}</div></div>`;
+// ── DATES (Firebase calendar) ──
+let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
+let allDatesData=[];
+
+// seed built-in dates into Firebase once if path is empty
+function seedBuiltinDates(){
+  const ann={month:START_DATE.getMonth()+1,day:START_DATE.getDate()};
+  const seeds=[
+    {name:"Our Anniversary",date:isoDate(ann.month,ann.day),icon:'✨',category:'anniversary',ts:Date.now()},
+    {name:"Hannah's Birthday",date:isoDate(HER_BDAY.month,HER_BDAY.day),icon:'💜',category:'milestone',ts:Date.now()},
+    {name:"Benny's Birthday",date:isoDate(HIS_BDAY.month,HIS_BDAY.day),icon:'🎂',category:'milestone',ts:Date.now()},
+  ];
+  seeds.forEach(s=>push(ref(db,'dates'),s));
+}
+
+function isoDate(m,d){
+  const now=new Date();
+  // pick closest upcoming year
+  let t=new Date(now.getFullYear(),m-1,d);
+  return `${t.getFullYear()}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+function listenDates(){
+  onValue(ref(db,'dates'),snap=>{
+    if(!snap.exists()){seedBuiltinDates();return;}
+    allDatesData=[];
+    Object.entries(snap.val()).forEach(([key,val])=>allDatesData.push({key,...val}));
+    allDatesData.sort((a,b)=>a.date>b.date?1:-1);
+    renderDatesList();
+    renderCalendar();
   });
 }
+
+function dayDiff(dateStr){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const d=new Date(dateStr+'T00:00:00'); d.setHours(0,0,0,0);
+  return Math.round((d-today)/86400000);
+}
+
+function renderDatesList(){
+  const g=document.getElementById('d-grid');
+  if(!allDatesData.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">No dates yet. Mark one.</div>';return;}
+  g.innerHTML=allDatesData.map(d=>{
+    const diff=dayDiff(d.date);
+    const isPast=diff<0;
+    const num=Math.abs(diff);
+    const unit=isPast?'Days Since':'Days To Go';
+    const dateLabel=new Date(d.date+'T00:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric'});
+    return`<div class="dc rv"><div class="dicon">${d.icon||'◆'}</div><div class="dname">${d.name}</div><div class="dnum">${num}</div><div class="dunit">${unit}</div><div class="dact">${dateLabel}${d.category?` · ${d.category}`:''}</div><button class="xbtn" style="position:absolute;top:8px;right:8px;" onclick="window.delDate('${d.key}')">✕</button></div>`;
+  }).join('');
+  // re-observe new .rv elements
+  const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis');});},{threshold:0});
+  g.querySelectorAll('.rv').forEach(el=>obs.observe(el));
+}
+
+function renderCalendar(){
+  const label=new Date(calYear,calMonth,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  document.getElementById('cal-month-label').textContent=label;
+  const today=new Date(); today.setHours(0,0,0,0);
+
+  // build set of event days for this month
+  const eventMap={};
+  allDatesData.forEach(d=>{
+    const dt=new Date(d.date+'T00:00:00');
+    // show recurrence: match month+day regardless of year
+    if(dt.getMonth()===calMonth){
+      const day=dt.getDate();
+      if(!eventMap[day])eventMap[day]=[];
+      eventMap[day].push(d);
+    }
+  });
+
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const prevDays=new Date(calYear,calMonth,0).getDate();
+
+  let html='';
+  // prev month filler
+  for(let i=firstDay-1;i>=0;i--){
+    html+=`<div class="cal-day other">${prevDays-i}</div>`;
+  }
+  // current month days
+  for(let d=1;d<=daysInMonth;d++){
+    const thisDate=new Date(calYear,calMonth,d); thisDate.setHours(0,0,0,0);
+    const isToday=thisDate.getTime()===today.getTime();
+    const events=eventMap[d]||[];
+    const hasEvent=events.length>0;
+    const isPast=hasEvent&&events.every(e=>dayDiff(e.date)<0);
+    const tooltipText=events.map(e=>e.icon+' '+e.name).join(', ');
+    let cls='cal-day';
+    if(isToday) cls+=' today';
+    if(hasEvent){cls+=' has-event';if(isPast)cls+=' past-event';}
+    html+=`<div class="${cls}">${d}${hasEvent?`<span class="cal-tooltip">${tooltipText}</span>`:''}</div>`;
+  }
+  // next month filler
+  const totalCells=Math.ceil((firstDay+daysInMonth)/7)*7;
+  for(let d=1;d<=totalCells-firstDay-daysInMonth;d++){
+    html+=`<div class="cal-day other">${d}</div>`;
+  }
+  document.getElementById('cal-days').innerHTML=html;
+}
+
+// Calendar nav
+document.getElementById('cal-prev').addEventListener('click',()=>{
+  calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();
+});
+document.getElementById('cal-next').addEventListener('click',()=>{
+  calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();
+});
+
+window.addDate=function(mob=false){
+  const name=(mob?document.getElementById('sd-name'):document.getElementById('di-name')).value.trim();
+  const date=(mob?document.getElementById('sd-date'):document.getElementById('di-date')).value;
+  const icon=(mob?document.getElementById('sd-icon'):document.getElementById('di-icon')).value.trim()||'◆';
+  const category=(mob?document.getElementById('sd-category'):document.getElementById('di-category')).value.trim();
+  if(!name||!date)return toast('Name and date required');
+  push(ref(db,'dates'),{name,date,icon,category,ts:Date.now()});
+  // clear fields
+  ['sd-name','sd-date','sd-icon','sd-category','di-name','di-date','di-icon','di-category'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  closeSheet();toast('Date marked ◆');
+  // jump calendar to added month
+  const d=new Date(date+'T00:00:00');calYear=d.getFullYear();calMonth=d.getMonth();renderCalendar();
+};
+
+window.delDate=function(key){remove(ref(db,`dates/${key}`));toast('Removed');};
+
+// Live calendar preview: when date input changes, jump calendar to that month
+['di-date','sd-date'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el)el.addEventListener('change',()=>{
+    if(el.value){const d=new Date(el.value+'T00:00:00');calYear=d.getFullYear();calMonth=d.getMonth();renderCalendar();}
+  });
+});
 
 function initReveal(){
   const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis');});},{threshold:0});
