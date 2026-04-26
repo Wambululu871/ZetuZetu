@@ -75,6 +75,32 @@ section{position:relative;z-index:1;}
 #badge .dot{width:5px;height:5px;border-radius:50%;background:var(--accent);transition:background .4s;}
 #badge .nm{color:var(--accent);transition:color .4s;}
 
+/* ── PRESENCE ── */
+#presence{position:fixed;top:22px;right:64px;z-index:201;display:flex;align-items:center;gap:10px;padding:7px 14px;border:1px solid var(--border);background:rgba(8,0,15,.65);backdrop-filter:blur(20px);opacity:0;transition:opacity .6s .4s, border-color .3s;}
+#presence.vis{opacity:1;}
+#presence:hover{border-color:var(--border-h);}
+@media(max-width:700px){#presence{top:auto;bottom:calc(72px + 12px);right:12px;}}
+.pr-pair{display:flex;align-items:center;gap:5px;}
+.pr-dot{width:7px;height:7px;border-radius:50%;border:1px solid rgba(168,85,247,.3);background:transparent;position:relative;transition:background .5s,border-color .5s,box-shadow .5s;flex-shrink:0;}
+.pr-dot.online{background:var(--orchid);border-color:var(--orchid);box-shadow:0 0 0 0 rgba(168,85,247,.5);animation:prPulse 2s ease-out infinite;}
+body.H .pr-dot.online{background:var(--rose);border-color:var(--rose);box-shadow:0 0 0 0 rgba(232,121,249,.5);animation:prPulseH 2s ease-out infinite;}
+@keyframes prPulse{0%{box-shadow:0 0 0 0 rgba(168,85,247,.5)}70%{box-shadow:0 0 0 6px rgba(168,85,247,0)}100%{box-shadow:0 0 0 0 rgba(168,85,247,0)}}
+@keyframes prPulseH{0%{box-shadow:0 0 0 0 rgba(232,121,249,.5)}70%{box-shadow:0 0 0 6px rgba(232,121,249,0)}100%{box-shadow:0 0 0 0 rgba(232,121,249,0)}}
+.pr-label{font-size:.38rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(168,85,247,.35);}
+.pr-dot-wrap{position:relative;display:flex;align-items:center;}
+.pr-tip{position:absolute;right:0;bottom:calc(100% + 8px);background:rgba(14,0,28,.96);border:1px solid var(--border);padding:5px 10px;font-size:.38rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;}
+.pr-dot-wrap:hover .pr-tip{opacity:1;}
+.pr-sep{width:1px;height:10px;background:rgba(168,85,247,.12);margin:0 2px;}
+
+/* ── MOOD SHIFT (body transition for author swap) ── */
+body{transition:background .8s;}
+body.H{--accent:var(--rose);--glass:rgba(150,26,120,0.09);--border:rgba(232,121,249,0.13);--border-h:rgba(232,121,249,0.3);}
+
+/* ── AUDIO FLASH ── */
+@keyframes moodFlash{0%{opacity:.06}100%{opacity:0}}
+.mood-flash{position:fixed;inset:0;z-index:4000;pointer-events:none;background:var(--accent);opacity:0;}
+.mood-flash.go{animation:moodFlash .4s ease-out forwards;}
+
 /* ── SIDENAV ── */
 #snav{position:fixed;right:22px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:100;}
 #snav a{width:4px;height:4px;border-radius:50%;background:rgba(168,85,247,.2);transition:all .3s;display:block;position:relative;}
@@ -392,8 +418,28 @@ textarea.inp{resize:none;min-height:68px;font-family:'Cormorant Garamond',serif;
   <button class="sbtn" onclick="window.addDate(true)">Mark This Date ◆</button>
 </div>
 
+<div class="mood-flash" id="mood-flash"></div>
+
 <!-- SITE -->
 <div id="site">
+  <!-- PRESENCE BAR (sits visually over badge area, shown after login) -->
+  <div id="presence">
+    <div class="pr-pair">
+      <div class="pr-dot-wrap">
+        <div class="pr-dot" id="pr-B"></div>
+        <div class="pr-tip" id="pr-tip-B">B · offline</div>
+      </div>
+      <span class="pr-label">B</span>
+    </div>
+    <div class="pr-sep"></div>
+    <div class="pr-pair">
+      <div class="pr-dot-wrap">
+        <div class="pr-dot" id="pr-H"></div>
+        <div class="pr-tip" id="pr-tip-H">H · offline</div>
+      </div>
+      <span class="pr-label">H</span>
+    </div>
+  </div>
   <div id="badge" onclick="switchAuthor()">
     <div class="dot"></div><span class="nm" id="badge-nm">B</span>
     <span style="font-size:.42rem;letter-spacing:.1em;color:var(--muted);">· tap to switch</span>
@@ -601,7 +647,7 @@ textarea.inp{resize:none;min-height:68px;font-family:'Cormorant Garamond',serif;
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, push, remove, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, push, remove, onValue, set, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const PASSWORD   = 'kikubwa';
 const START_DATE = new Date('2026-03-24T00:00:00+03:00');
@@ -646,6 +692,107 @@ function relTime(ts){
   return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});
 }
 
+// ── AUDIO ENGINE ──
+let audioCtx=null;
+function getAudioCtx(){
+  if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended')audioCtx.resume();
+  return audioCtx;
+}
+// Soft high-frequency click — author switch
+function playClick(){
+  try{
+    const ctx=getAudioCtx();
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.type='sine';
+    osc.frequency.setValueAtTime(880,ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440,ctx.currentTime+.08);
+    gain.gain.setValueAtTime(.12,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.12);
+    osc.start();osc.stop(ctx.currentTime+.13);
+  }catch(e){}
+}
+// Deep soft pulse — bucket tick
+function playPulse(){
+  try{
+    const ctx=getAudioCtx();
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.type='sine';
+    osc.frequency.setValueAtTime(220,ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(110,ctx.currentTime+.18);
+    gain.gain.setValueAtTime(.18,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.22);
+    osc.start();osc.stop(ctx.currentTime+.23);
+  }catch(e){}
+}
+// Airy whoosh — sheet open/close
+function playWhoosh(){
+  try{
+    const ctx=getAudioCtx();
+    const buf=ctx.createBuffer(1,ctx.sampleRate*.12,ctx.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,2);
+    const src=ctx.createBufferSource();
+    const gain=ctx.createGain();
+    const filt=ctx.createBiquadFilter();
+    src.buffer=buf;filt.type='highpass';filt.frequency.value=3200;
+    src.connect(filt);filt.connect(gain);gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(.06,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.14);
+    src.start();
+  }catch(e){}
+}
+
+// ── MOOD FLASH (visual haptic on author switch) ──
+function triggerMoodFlash(){
+  const el=document.getElementById('mood-flash');
+  el.classList.remove('go');
+  void el.offsetWidth; // reflow
+  el.classList.add('go');
+}
+
+// ── PRESENCE SYSTEM ──
+let presenceInited=false;
+function initPresence(author){
+  if(presenceInited)return;
+  presenceInited=true;
+  const myRef=ref(db,`presence/${author}`);
+  // Set online
+  set(myRef,{status:'online',lastSeen:Date.now()});
+  // Auto-flip to offline on disconnect
+  onDisconnect(myRef).set({status:'offline',lastSeen:Date.now()});
+  // Listen to both presence nodes
+  ['B','H'].forEach(a=>{
+    onValue(ref(db,`presence/${a}`),snap=>{
+      const dot=document.getElementById(`pr-${a}`);
+      const tip=document.getElementById(`pr-tip-${a}`);
+      if(!dot||!tip)return;
+      if(snap.exists()){
+        const d=snap.val();
+        const online=d.status==='online';
+        dot.classList.toggle('online',online);
+        tip.textContent=online?`${a} · here now`:`${a} · ${relTime(d.lastSeen)}`;
+      } else {
+        dot.classList.remove('online');
+        tip.textContent=`${a} · not seen yet`;
+      }
+    });
+  });
+  document.getElementById('presence').classList.add('vis');
+}
+
+// ── HEARTBEAT: update lastSeen every 60s while tab is open ──
+let heartbeatAuthor='B';
+setInterval(()=>{
+  if(presenceInited){
+    set(ref(db,`presence/${heartbeatAuthor}`),{status:'online',lastSeen:Date.now()}).catch(()=>{});
+  }
+},60000);
+
 // Loading
 setTimeout(()=>document.getElementById('loading').classList.add('out'),900);
 
@@ -653,14 +800,16 @@ setTimeout(()=>document.getElementById('loading').classList.add('out'),900);
 const isMobile=()=>window.innerWidth<=700;
 
 // Sheet system
-window.openSheet=function(id){
+function _openSheetCore(id){
   document.getElementById('s-overlay').classList.add('on');
   document.getElementById(id).classList.add('on');
-};
-window.closeSheet=function(){
+}
+function _closeSheetCore(){
   document.getElementById('s-overlay').classList.remove('on');
   document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('on'));
-};
+}
+window.openSheet=function(id){playWhoosh();_openSheetCore(id);};
+window.closeSheet=function(){playWhoosh();_closeSheetCore();};
 
 // Mobile buttons
 function setupMobile(){
@@ -699,8 +848,9 @@ function tryUnlock(){
 
 // Author
 let jAuthor='B',nAuthor='B',mAuthor='B';
-function setAuthor(a){
+function setAuthor(a,withFx=false){
   chosenAuthor=a;
+  heartbeatAuthor=a;
   document.body.classList.toggle('H',a==='H');
   document.getElementById('badge-nm').textContent=a;
   ['j','n','m','sj','sn','sm'].forEach(p=>{
@@ -708,8 +858,18 @@ function setAuthor(a){
     if(bA&&bH){bA.classList.toggle('on',a==='B');bH.classList.toggle('on',a==='H');}
   });
   jAuthor=a;nAuthor=a;mAuthor=a;
+  if(withFx){playClick();triggerMoodFlash();}
 }
-window.switchAuthor=function(){setAuthor(chosenAuthor==='B'?'H':'B');toast(`Switched to ${chosenAuthor}`);};
+window.switchAuthor=function(){
+  const next=chosenAuthor==='B'?'H':'B';
+  setAuthor(next,true);
+  // Update presence to new author
+  if(presenceInited){
+    set(ref(db,`presence/${chosenAuthor}`),{status:'online',lastSeen:Date.now()});
+    heartbeatAuthor=chosenAuthor;
+  }
+  toast(`Switched to ${chosenAuthor}`);
+};
 
 const DEFAULT_BUCKETS=['Watch the sunrise somewhere new','Cook a full meal together','Go somewhere neither of us has been','Have a night in with no phones','Take a photo we both actually love','Go on a road trip, no destination','Get all dressed up just for each other','Build something together'];
 
@@ -717,6 +877,7 @@ function initSite(){
   startCounter();listenDates();
   listenSong();listenJournal();listenNotes();listenMemories();listenBuckets();
   initReveal();initNav();
+  initPresence(chosenAuthor);
   document.getElementById('cl-since').textContent='Together since '+START_DATE.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
 }
 
@@ -1015,7 +1176,7 @@ window.addBucket=function(){
   push(ref(db,'buckets'),{text,done:false,ts:Date.now()});
   el.value='';closeSheet();toast('Added to the list');
 };
-window.toggleBucket=function(key,done,x,y){set(ref(db,`buckets/${key}/done`),!done);if(!done)burst(x,y);};
+window.toggleBucket=function(key,done,x,y){set(ref(db,`buckets/${key}/done`),!done);if(!done){burst(x,y);playPulse();}};
 window.delBucket=function(key){remove(ref(db,`buckets/${key}`));toast('Removed');};
 function listenBuckets(){
   onValue(ref(db,'buckets'),snap=>{
